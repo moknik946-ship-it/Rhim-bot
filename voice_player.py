@@ -222,20 +222,27 @@ def _yt_dlp_command():
 
 
 def _yt_cookies_file():
-    """كوكيز يوتيوب (اختياري): من متغير YT_COOKIES (نص ملف cookies.txt) أو YT_COOKIES_FILE"""
+    """Return a YouTube cookies file from env vars, or the project's local cookies.txt."""
     path = os.environ.get("YT_COOKIES_FILE")
-    if path and os.path.exists(path):
+    if path and os.path.isfile(path) and os.path.getsize(path) > 0:
         return path
+
     text = os.environ.get("YT_COOKIES")
     if text:
         import tempfile
         p = os.path.join(tempfile.gettempdir(), "yt_cookies.txt")
         try:
             with open(p, "w", encoding="utf-8") as f:
-                f.write(text.replace("\\n", "\n"))
+                f.write(text.replace("\\\\n", "\n"))
             return p
-        except Exception:
-            return None
+        except Exception as e:
+            HELLXlog("YTDLP", f"Could not write YT_COOKIES: {type(e).__name__}: {e}")
+
+    # Local development fallback. On Railway/other hosting, configure YT_COOKIES_FILE
+    # with a mounted secret file, or set YT_COOKIES as a secret variable.
+    local_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cookies.txt")
+    if os.path.isfile(local_path) and os.path.getsize(local_path) > 0:
+        return local_path
     return None
 
 def _run_ytdlp(url, raw_path, ffmpeg_path):
