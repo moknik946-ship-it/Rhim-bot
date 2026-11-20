@@ -45,7 +45,7 @@ from app_2 import build_ob55_online_auth, create_auth_token_chat, JoinSq_origina
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 # توكن تليجرام المحدد
-TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "9224759794:AAHP7Xxa02tnOaBbaxl8K4lyk7AHR_EDVjQ").strip()
 if not TELEGRAM_BOT_TOKEN:
     raise SystemExit("حط توكن البوت في متغير البيئة TELEGRAM_BOT_TOKEN")
 
