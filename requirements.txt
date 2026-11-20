@@ -1,0 +1,15 @@
+aiohttp
+pycryptodome
+urllib3
+protobuf
+requests
+psutil
+PyJWT
+protobuf-decoder
+cfonts
+httpx
+google_play_scraper
+flask
+python-telegram-bot
+yt-dlp[default]
+imageio-ffmpeg

@@ -1,0 +1,14 @@
+{
+  "admins": [],
+  "enabled": true,
+  "allowed_groups": [],
+  "banned_groups": [],
+  "channels": [],
+  "disabled_cmds": [],
+  "stats": {
+    "teams_joined": 8,
+    "daily": {
+      "2026-11-19": 8
+    }
+  }
+}
