@@ -4,9 +4,8 @@
 # ║ ضع مفتاح Gemini API بين علامتي الاقتباس أدناه ثم احفظ الملف. ║
 # ║ مثال: AI_API_KEY = "AIza..."                                 ║
 # ╚══════════════════════════════════════════════════════════════╝
-AI_API_KEY = "AQ.Ab8RN6LR-t_9h9jZmoZlLPx6ohhdf0R5eBQESzKR2OS0qHbIdg"  # الصق مفتاح Gemini API هنا؛ اتركه فارغاً لاستخدام .env
-AI_MODEL = "gemini-3.5-flash-lite"  # النموذج الافتراضي، يختار البرنامج نموذجاً متاحاً تلقائياً عند الحاجة
-OWNER_ID = 8538052860  # ضع رقم حسابك في Telegram هنا (رقم فقط)، مثال: 123456789
+AI_API_KEY = "AQ.Ab8RN6KcWgF1jFngQfNY7sp8tU_wK3UvDpsuMLWoCdm6pQju5Q"  # الصق مفتاح Gemini API هنا؛ اتركه فارغاً لاستخدام .env
+OWNER_ID = 7788474071  # ضع رقم حسابك في Telegram هنا (رقم فقط)، مثال: 123456789
 
 # تحميل ملف .env (اختياري) قبل أي استيراد، عشان باقي الملفات تقرأ المتغيرات
 import os as _os
@@ -24,8 +23,6 @@ if _os.path.exists(_env_path):
 # المفتاح المكتوب أعلى هذا الملف يتقدم على .env عند تعبئته
 if AI_API_KEY.strip():
     _os.environ["AI_API_KEY"] = AI_API_KEY.strip()
-if AI_MODEL.strip():
-    _os.environ["AI_MODEL"] = AI_MODEL.strip()
 # إذا وضعت رقم المالك هنا، تكون له الأولوية على قيمة OWNER_ID في .env
 if int(OWNER_ID or 0) > 0:
     _os.environ["OWNER_ID"] = str(int(OWNER_ID))
