@@ -1,32 +1,13 @@
 # -*- coding: utf-8 -*-
-# ╔══════════════════════════════════════════════════════════════╗
-# ║ إعدادات الذكاء الاصطناعي Gemini                              ║
-# ║ ضع مفتاح Gemini API بين علامتي الاقتباس أدناه ثم احفظ الملف. ║
-# ║ مثال: AI_API_KEY = "AIza..."                                 ║
-# ╚══════════════════════════════════════════════════════════════╝
-AI_API_KEY = "AQ.Ab8RN6KcWgF1jFngQfNY7sp8tU_wK3UvDpsuMLWoCdm6pQju5Q"  # الصق مفتاح Gemini API هنا؛ اتركه فارغاً لاستخدام .env
-OWNER_ID = 7788474071  # ضع رقم حسابك في Telegram هنا (رقم فقط)، مثال: 123456789
-
-# تحميل ملف .env (اختياري) قبل أي استيراد، عشان باقي الملفات تقرأ المتغيرات
-import os as _os
-_env_path = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), ".env")
-if _os.path.exists(_env_path):
-    with open(_env_path, "r", encoding="utf-8") as _f:
-        for _line in _f:
-            _line = _line.strip()
-            if not _line or _line.startswith("#") or "=" not in _line:
-                continue
-            _k, _v = _line.split("=", 1)
-            _k, _v = _k.strip(), _v.strip().strip('"').strip("'")
-            if _k and _v:
-                _os.environ.setdefault(_k, _v)      # متغيرات النظام (Railway) لها الأولوية
-# المفتاح المكتوب أعلى هذا الملف يتقدم على .env عند تعبئته
-if AI_API_KEY.strip():
-    _os.environ["AI_API_KEY"] = AI_API_KEY.strip()
-# إذا وضعت رقم المالك هنا، تكون له الأولوية على قيمة OWNER_ID في .env
-if int(OWNER_ID or 0) > 0:
-    _os.environ["OWNER_ID"] = str(int(OWNER_ID))
+# إعدادات المشروع: تُقرأ الأسرار والإعدادات من Variables في Railway فقط.
+# لا يتم إنشاء ملف .env أو قراءته داخل هذا المشروع.
 import os
+
+OWNER_ID = 7788474071  # رقم حساب المالك في Telegram
+
+# مرّر OWNER_ID إلى بقية وحدات المشروع
+os.environ["OWNER_ID"] = str(OWNER_ID)
+
 import json
 import asyncio
 import logging
