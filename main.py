@@ -4,7 +4,7 @@
 # ╚══════════════════════════════════════════════════════════════╝
 AI_API_KEY = "AQ.Ab8RN6LyTBpVVq3Ju_rv5UpuXLKsXTs_8a0eNBS4EAUmU-IT5A"       # مفتاح Gemini API
 AI_MODEL = "gemini-2.5-flash"  # سيكتشف البرنامج النماذج المتاحة للمفتاح تلقائياً
-OWNER_ID = 8538052860          # رقم حساب مالك البوت في Telegram (أرقام فقط)
+OWNER_ID = 7788474071          # رقم حساب مالك البوت في Telegram (أرقام فقط)
 
 # تحميل ملف .env (اختياري) قبل أي استيراد، عشان باقي الملفات تقرأ المتغيرات
 import os as _os
@@ -58,7 +58,7 @@ from app_2 import build_ob55_online_auth, create_auth_token_chat, JoinSq_origina
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 # توكن تليجرام المحدد
-TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "9220624858:AAGV7ZzrbfcmybKFpC0fPeX1NM0oHpSMvpg").strip()
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "9224759794:AAHP7Xxa02tnOaBbaxl8K4lyk7AHR_EDVjQ").strip()
 if not TELEGRAM_BOT_TOKEN:
     raise SystemExit("حط توكن البوت في متغير البيئة TELEGRAM_BOT_TOKEN")
 
