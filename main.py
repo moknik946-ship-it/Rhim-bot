@@ -1,4 +1,11 @@
 # -*- coding: utf-8 -*-
+# ╔══════════════════════════════════════════════════════════════╗
+# ║ إعدادات STRAVEX: ضع بياناتك هنا ثم احفظ الملف                ║
+# ╚══════════════════════════════════════════════════════════════╝
+AI_API_KEY = "AQ.Ab8RN6LyTBpVVq3Ju_rv5UpuXLKsXTs_8a0eNBS4EAUmU-IT5A"       # مفتاح Gemini API
+AI_MODEL = "gemini-2.5-flash"  # سيكتشف البرنامج النماذج المتاحة للمفتاح تلقائياً
+OWNER_ID = 8538052860          # رقم حساب مالك البوت في Telegram (أرقام فقط)
+
 # تحميل ملف .env (اختياري) قبل أي استيراد، عشان باقي الملفات تقرأ المتغيرات
 import os as _os
 _env_path = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), ".env")
@@ -12,15 +19,20 @@ if _os.path.exists(_env_path):
             _k, _v = _k.strip(), _v.strip().strip('"').strip("'")
             if _k and _v:
                 _os.environ.setdefault(_k, _v)      # متغيرات النظام (Railway) لها الأولوية
+# الإعدادات المكتوبة أعلى main.py لها الأولوية عند تعبئتها
+if AI_API_KEY.strip():
+    _os.environ["AI_API_KEY"] = AI_API_KEY.strip()
+if AI_MODEL.strip():
+    _os.environ["AI_MODEL"] = AI_MODEL.strip()
+_os.environ["OWNER_ID"] = str(int(OWNER_ID or 0))
 import os
 import json
 import asyncio
 import logging
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, BotCommand
+from telegram import Update
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
-    CallbackQueryHandler,
     MessageHandler,
     ContextTypes,
     ConversationHandler,
@@ -34,6 +46,7 @@ import login_engine
 from Pb2 import DEcwHisPErMsG_pb2
 from xC4 import AutH_Chat, xSEndMsgsQ, DeCode_PackEt, ExiT, Emote_k
 from squad_bot import SquadBot
+import ai_chat
 import admin
 
 # لا نطبع روابط تيليجرام في السجل (فيها التوكن)
@@ -45,7 +58,7 @@ from app_2 import build_ob55_online_auth, create_auth_token_chat, JoinSq_origina
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 # توكن تليجرام المحدد
-TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "9224759794:AAHP7Xxa02tnOaBbaxl8K4lyk7AHR_EDVjQ").strip()
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "9220624858:AAGV7ZzrbfcmybKFpC0fPeX1NM0oHpSMvpg").strip()
 if not TELEGRAM_BOT_TOKEN:
     raise SystemExit("حط توكن البوت في متغير البيئة TELEGRAM_BOT_TOKEN")
 
@@ -53,74 +66,39 @@ from accounts import pool
 import ui
 import messages
 
-def _main_keyboard():
-    return InlineKeyboardMarkup([
-        [InlineKeyboardButton("🎵 دخول فريق بالموسيقى", callback_data="menu_music")],
-        [InlineKeyboardButton("🟢 تشغيل أونلاين", callback_data="menu_online"),
-         InlineKeyboardButton("🔴 إيقاف البوت", callback_data="menu_offline")],
-        [InlineKeyboardButton("▶️ تشغيل أغنية", callback_data="menu_play"),
-         InlineKeyboardButton("⏸ استئناف", callback_data="menu_resume")],
-        [InlineKeyboardButton("⏹ إيقاف الموسيقى", callback_data="menu_stop"),
-         InlineKeyboardButton("📖 شرح الأوامر", callback_data="menu_help")],
-    ])
-
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "🎮 أهلاً بك في بوت الفريق والموسيقى\nاختر العملية من الأزرار بالأسفل.\n\n"
-        "🔹 دخول فريق: يطلب منك كود الفريق ثم يدخل البوت.\n"
-        "🔹 تشغيل أونلاين: يبقي الحساب متصلاً لقبول الدعوات.\n"
-        "🔹 إيقاف البوت: يخرج الحساب من اللعبة.\n"
-        "🔹 تشغيل أغنية: أرسل /play ثم اسم الأغنية بعد دخول الفريق.",
-        reply_markup=_main_keyboard())
+    await ui.reply(update.message, ui.menu(), reply_markup=ui.main_keyboard())
 
-async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    q = update.callback_query
-    await q.answer()
-    action = q.data
-    if action == "menu_music":
-        context.user_data["await_team_code"] = True
-        await q.message.reply_text("أرسل الآن كود الفريق (أرقام فقط) للانضمام:")
-    elif action == "menu_online":
-        tid = update.effective_user.id
-        msg = await q.message.reply_text("⏳ جاري تشغيل البوت أونلاين...")
-        bot, err = await _new_bot(tid)
-        if err:
-            await msg.edit_text("❌ " + ui.clean(err))
-        else:
-            bot.persistent = True
-            await msg.edit_text("🟢 البوت أونلاين. ادعه لفريقك من داخل اللعبة. للإيقاف اضغط زر إيقاف البوت.")
-    elif action == "menu_offline":
-        bot = squad_bots.pop(update.effective_user.id, None)
-        if bot:
-            await bot.close()
-        await q.message.reply_text("🔴 تم إخراج البوت من اللعبة." if bot else "البوت غير مشغّل حالياً.")
-    elif action == "menu_play":
-        await q.message.reply_text("بعد دخول الفريق أرسل: /play اسم الأغنية")
-    elif action == "menu_resume":
-        await q.message.reply_text("لاستئناف الموسيقى أرسل الأمر: /resume")
-    elif action == "menu_stop":
-        await q.message.reply_text("لإيقاف الموسيقى أو المهمة أرسل الأمر: /stop")
-    elif action == "menu_help":
-        await q.message.reply_text(
-            "📖 الأوامر ووظيفتها:\n"
-            "/music كود_الفريق [أغنية] — دخول الفريق وتشغيل أغنية اختيارياً.\n"
-            "/play اسم_الأغنية — تشغيل أغنية.\n"
-            "/resume — استئناف التشغيل.\n"
-            "/online — إبقاء البوت أونلاين وقبول الدعوات.\n"
-            "/offline — إخراج البوت من اللعبة.\n"
-            "/stop — إيقاف التشغيل الحالي.\n"
-            "/stopall — إيقاف جميع المهام المتاحة.")
 
-async def menu_text_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not context.user_data.get("await_team_code"):
+_AI_WAITING = set()
+
+async def menu_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """أزرار تيليجرام؛ زر AI يفتح إدخال سؤال، وبقية الأزرار تعرض التعليمات."""
+    if not update.message or not update.effective_user:
         return
-    code = (update.message.text or "").strip()
-    if not code.isdigit():
-        await update.message.reply_text("⚠️ الكود يجب أن يحتوي على أرقام فقط. أعد إرساله:")
+    text = (update.message.text or "").strip()
+    uid = update.effective_user.id
+    if text == "🤖 اسأل AI":
+        _AI_WAITING.add(uid)
+        await ui.reply(update.message, "🤖 أرسل سؤالك الآن في رسالة واحدة، وسأجيبك عبر Gemini.\nللإلغاء اضغط «❌ إلغاء». ", reply_markup=ui.main_keyboard())
         return
-    context.user_data.pop("await_team_code", None)
-    context.args = [code]
-    await music_command(update, context)
+    if text == "❌ إلغاء":
+        _AI_WAITING.discard(uid)
+        await ui.reply(update.message, "تم إلغاء العملية.", reply_markup=ui.main_keyboard())
+        return
+    if uid in _AI_WAITING:
+        _AI_WAITING.discard(uid)
+        answer, error = await ai_chat.ask(uid, text)
+        await ui.reply(update.message, ("⚠️ " + error) if error else ("🤖 <b>Gemini:</b>\n" + ui.esc(answer)), reply_markup=ui.main_keyboard())
+        return
+    if text == "📖 المساعدة":
+        await ui.reply(update.message, ui.menu(), reply_markup=ui.main_keyboard())
+    elif text == "🎵 الموسيقى":
+        await ui.reply(update.message, "🎵 <b>الموسيقى</b>\n/music ‹كود الفريق› [اسم الأغنية]\n/play [اسم الأغنية]\n/resume لاستكمال التشغيل\n/stop للإيقاف", reply_markup=ui.main_keyboard())
+    elif text == "💃 الرقص":
+        await ui.reply(update.message, "💃 <b>الرقص</b>\n/em ‹كود الفريق›\n/dance ‹كود› ‹uid› ‹رقم الرقصة›\n/evo ‹كود› ‹uid› ‹رقم›", reply_markup=ui.main_keyboard())
+    elif text == "👥 الفرق":
+        await ui.reply(update.message, "👥 <b>الفرق</b>\n/team3 أو /team5 أو /team6 لإنشاء فريق ودعوتك", reply_markup=ui.main_keyboard())
 
 
 # ═══════════════════════════ بوت الفريق: موسيقى + أوامر داخل اللعبة ═══════════════════════════
@@ -1143,22 +1121,13 @@ async def _post_shutdown(application):
     await admin.stop_web()
 
 
-
-def _chain_post_init(existing, extra):
-    async def _combined(application):
-        if existing:
-            await existing(application)
-        await extra(application)
-    return _combined
-
 # ═══════════════════════════ تشغيل البوت ═══════════════════════════
 if __name__ == "__main__":
     app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).post_init(_post_init).post_shutdown(_post_shutdown).build()
     admin.register(app)
 
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(menu_callback, pattern=r"^menu_"))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, menu_text_input))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, menu_button_handler))
     app.add_handler(CommandHandler("music", music_command))
     app.add_handler(CommandHandler("play", play_command))
     app.add_handler(CommandHandler("resume", resume_command))
@@ -1178,17 +1147,5 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("co", co_command))
     app.add_handler(CommandHandler("evo", _make_dance_cmd(True)))
 
-    async def _set_command_menu(application):
-        await application.bot.set_my_commands([
-            BotCommand("start", "عرض قائمة الأزرار"),
-            BotCommand("music", "دخول فريق وتشغيل الموسيقى"),
-            BotCommand("play", "تشغيل أغنية"),
-            BotCommand("resume", "استئناف الموسيقى"),
-            BotCommand("online", "تشغيل البوت أونلاين"),
-            BotCommand("offline", "إيقاف البوت والخروج"),
-            BotCommand("stop", "إيقاف التشغيل"),
-            BotCommand("stopall", "إيقاف جميع المهام"),
-        ])
-    app.post_init = _chain_post_init(app.post_init, _set_command_menu)
     print("🚀 البوت يعمل الآن...")
     app.run_polling()
