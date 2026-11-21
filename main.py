@@ -2,7 +2,7 @@
 # ╔══════════════════════════════════════════════════════════════╗
 # ║ إعدادات STRAVEX: ضع بياناتك هنا ثم احفظ الملف                ║
 # ╚══════════════════════════════════════════════════════════════╝
-AI_API_KEY = "AQ.Ab8RN6LyTBpVVq3Ju_rv5UpuXLKsXTs_8a0eNBS4EAUmU-IT5A"       # مفتاح Gemini API
+AI_API_KEY = "AQ.Ab8RN6LR-t_9h9jZmoZlLPx6ohhdf0R5eBQESzKR2OS0qHbIdg"       # مفتاح Gemini API
 AI_MODEL = "gemini-2.5-flash"  # سيكتشف البرنامج النماذج المتاحة للمفتاح تلقائياً
 OWNER_ID = 7788474071          # رقم حساب مالك البوت في Telegram (أرقام فقط)
 
