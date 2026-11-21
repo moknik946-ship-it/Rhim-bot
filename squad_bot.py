@@ -12,6 +12,7 @@ import logging
 import os
 import struct
 import time
+import ai_chat
 
 import messages as M
 from proto import HELLXdecode_proto
@@ -76,6 +77,7 @@ HELP_TEXT = (
     "[00FF7F]!stop  ← إيقاف مؤقت\n"
     "[00FF7F]!resume  ← متابعة\n"
     "[00FF7F]!status  ← الأغنية الحالية\n"
+    "[00FFFF]@ai سؤالك / !ai سؤالك  ← اسأل المساعد الذكي\n"
     "[00FF7F]!sound 1-200  ← مستوى الصوت\n"
     "[FF8C00]!dance اسم/رقم  ← رقصة\n"
     "[FF8C00]!em  ← كل الرقصات\n"
@@ -542,13 +544,33 @@ class SquadBot:
     # ───────────── الأوامر ─────────────
     async def handle_command(self, message, sender_uid=None):
         msg = message.strip()
-        if msg.startswith("/") and not msg.startswith("//"):
+        lower_msg = msg.lower()
+        # صيَغ AI المباشرة في شات الفريق، دون التأثير على بقية أوامر الموسيقى والرقص.
+        if lower_msg == "@ai" or lower_msg.startswith("@ai "):
+            question = msg[3:].strip()
+            msg = "!ai " + question
+        elif lower_msg == "يا ai" or lower_msg.startswith("يا ai "):
+            question = msg[5:].strip()
+            msg = "!ai " + question
+        elif msg.startswith("/") and not msg.startswith("//"):
             msg = "!" + msg[1:]
         if not msg.startswith("!"):
             return
         parts = msg.split()
         cmd = parts[0].lower()
         args = parts[1:]
+        if cmd == "!ai":
+            if args and args[0].lower() in ("reset", "clear", "مسح"):
+                ai_chat.clear_history(sender_uid)
+                await self.say("[00FFFF]تم مسح سياق محادثتك مع AI.")
+                return
+            question = " ".join(args).strip()
+            answer, error = await ai_chat.ask(sender_uid, question)
+            if error:
+                await self.say("[FFD700]AI: " + error)
+            else:
+                await self.say("[00FFFF]AI: [FFFFFF]" + answer)
+            return
         if self.command_hook:
             try:
                 if await self.command_hook(self, cmd[1:], args, sender_uid, False):
