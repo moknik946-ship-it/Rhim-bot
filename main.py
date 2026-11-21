@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 # ╔══════════════════════════════════════════════════════════════╗
-# ║ إعدادات STRAVEX: ضع بياناتك هنا ثم احفظ الملف                ║
+# ║ إعدادات الذكاء الاصطناعي Gemini                              ║
+# ║ ضع مفتاح Gemini API بين علامتي الاقتباس أدناه ثم احفظ الملف. ║
+# ║ مثال: AI_API_KEY = "AIza..."                                 ║
 # ╚══════════════════════════════════════════════════════════════╝
-AI_API_KEY = "AQ.Ab8RN6LR-t_9h9jZmoZlLPx6ohhdf0R5eBQESzKR2OS0qHbIdg"       # مفتاح Gemini API
-AI_MODEL = "gemini-2.5-flash"  # سيكتشف البرنامج النماذج المتاحة للمفتاح تلقائياً
-OWNER_ID = 7788474071          # رقم حساب مالك البوت في Telegram (أرقام فقط)
+AI_API_KEY = "AQ.Ab8RN6LR-t_9h9jZmoZlLPx6ohhdf0R5eBQESzKR2OS0qHbIdg"  # الصق مفتاح Gemini API هنا؛ اتركه فارغاً لاستخدام .env
+AI_MODEL = "gemini-3.5-flash-lite"  # النموذج الافتراضي، يختار البرنامج نموذجاً متاحاً تلقائياً عند الحاجة
+OWNER_ID = 8538052860  # ضع رقم حسابك في Telegram هنا (رقم فقط)، مثال: 123456789
 
 # تحميل ملف .env (اختياري) قبل أي استيراد، عشان باقي الملفات تقرأ المتغيرات
 import os as _os
@@ -19,12 +21,14 @@ if _os.path.exists(_env_path):
             _k, _v = _k.strip(), _v.strip().strip('"').strip("'")
             if _k and _v:
                 _os.environ.setdefault(_k, _v)      # متغيرات النظام (Railway) لها الأولوية
-# الإعدادات المكتوبة أعلى main.py لها الأولوية عند تعبئتها
+# المفتاح المكتوب أعلى هذا الملف يتقدم على .env عند تعبئته
 if AI_API_KEY.strip():
     _os.environ["AI_API_KEY"] = AI_API_KEY.strip()
 if AI_MODEL.strip():
     _os.environ["AI_MODEL"] = AI_MODEL.strip()
-_os.environ["OWNER_ID"] = str(int(OWNER_ID or 0))
+# إذا وضعت رقم المالك هنا، تكون له الأولوية على قيمة OWNER_ID في .env
+if int(OWNER_ID or 0) > 0:
+    _os.environ["OWNER_ID"] = str(int(OWNER_ID))
 import os
 import json
 import asyncio
@@ -46,7 +50,6 @@ import login_engine
 from Pb2 import DEcwHisPErMsG_pb2
 from xC4 import AutH_Chat, xSEndMsgsQ, DeCode_PackEt, ExiT, Emote_k
 from squad_bot import SquadBot
-import ai_chat
 import admin
 
 # لا نطبع روابط تيليجرام في السجل (فيها التوكن)
@@ -58,7 +61,7 @@ from app_2 import build_ob55_online_auth, create_auth_token_chat, JoinSq_origina
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 # توكن تليجرام المحدد
-TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "9224759794:AAHP7Xxa02tnOaBbaxl8K4lyk7AHR_EDVjQ").strip()
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "9220624858:AAGV7ZzrbfcmybKFpC0fPeX1NM0oHpSMvpg").strip()
 if not TELEGRAM_BOT_TOKEN:
     raise SystemExit("حط توكن البوت في متغير البيئة TELEGRAM_BOT_TOKEN")
 
@@ -67,38 +70,7 @@ import ui
 import messages
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await ui.reply(update.message, ui.menu(), reply_markup=ui.main_keyboard())
-
-
-_AI_WAITING = set()
-
-async def menu_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """أزرار تيليجرام؛ زر AI يفتح إدخال سؤال، وبقية الأزرار تعرض التعليمات."""
-    if not update.message or not update.effective_user:
-        return
-    text = (update.message.text or "").strip()
-    uid = update.effective_user.id
-    if text == "🤖 اسأل AI":
-        _AI_WAITING.add(uid)
-        await ui.reply(update.message, "🤖 أرسل سؤالك الآن في رسالة واحدة، وسأجيبك عبر Gemini.\nللإلغاء اضغط «❌ إلغاء». ", reply_markup=ui.main_keyboard())
-        return
-    if text == "❌ إلغاء":
-        _AI_WAITING.discard(uid)
-        await ui.reply(update.message, "تم إلغاء العملية.", reply_markup=ui.main_keyboard())
-        return
-    if uid in _AI_WAITING:
-        _AI_WAITING.discard(uid)
-        answer, error = await ai_chat.ask(uid, text)
-        await ui.reply(update.message, ("⚠️ " + error) if error else ("🤖 <b>Gemini:</b>\n" + ui.esc(answer)), reply_markup=ui.main_keyboard())
-        return
-    if text == "📖 المساعدة":
-        await ui.reply(update.message, ui.menu(), reply_markup=ui.main_keyboard())
-    elif text == "🎵 الموسيقى":
-        await ui.reply(update.message, "🎵 <b>الموسيقى</b>\n/music ‹كود الفريق› [اسم الأغنية]\n/play [اسم الأغنية]\n/resume لاستكمال التشغيل\n/stop للإيقاف", reply_markup=ui.main_keyboard())
-    elif text == "💃 الرقص":
-        await ui.reply(update.message, "💃 <b>الرقص</b>\n/em ‹كود الفريق›\n/dance ‹كود› ‹uid› ‹رقم الرقصة›\n/evo ‹كود› ‹uid› ‹رقم›", reply_markup=ui.main_keyboard())
-    elif text == "👥 الفرق":
-        await ui.reply(update.message, "👥 <b>الفرق</b>\n/team3 أو /team5 أو /team6 لإنشاء فريق ودعوتك", reply_markup=ui.main_keyboard())
+    await ui.reply(update.message, ui.menu())
 
 
 # ═══════════════════════════ بوت الفريق: موسيقى + أوامر داخل اللعبة ═══════════════════════════
@@ -1127,7 +1099,6 @@ if __name__ == "__main__":
     admin.register(app)
 
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, menu_button_handler))
     app.add_handler(CommandHandler("music", music_command))
     app.add_handler(CommandHandler("play", play_command))
     app.add_handler(CommandHandler("resume", resume_command))
