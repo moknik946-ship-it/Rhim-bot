@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
-# إعدادات المشروع: تُقرأ الأسرار والإعدادات من Variables في Railway فقط.
-# لا يتم إنشاء ملف .env أو قراءته داخل هذا المشروع.
+# إعدادات المشروع بدون ملف .env
 import os
 
-OWNER_ID = 7788474071  # رقم حساب المالك في Telegram
+# الصق مفتاح Gemini الجديد بين علامتي الاقتباس أدناه على جهازك فقط.
+# لا تستخدم المفتاح القديم الذي ظهر في الملف/الصورة، ولا ترسله لأي شخص.
+AI_API_KEY = "AQ.Ab8RN6JhMWd6P_OdVO3yyHd8p4O5bzxkND7xxclLapzrTBpnrw"
+OWNER_ID = 7788474071
 
-# مرّر OWNER_ID إلى بقية وحدات المشروع
+if AI_API_KEY == "PASTE_NEW_GEMINI_API_KEY_HERE" or not AI_API_KEY.strip():
+    raise SystemExit("ضع مفتاح Gemini الجديد في متغير AI_API_KEY أعلى الملف")
+os.environ["AI_API_KEY"] = AI_API_KEY.strip()
 os.environ["OWNER_ID"] = str(OWNER_ID)
 
 import json
