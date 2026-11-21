@@ -1,17 +1,32 @@
 # -*- coding: utf-8 -*-
-# إعدادات المشروع بدون ملف .env
+# ╔══════════════════════════════════════════════════════════════╗
+# ║ إعدادات الذكاء الاصطناعي Gemini                              ║
+# ║ ضع مفتاح Gemini API بين علامتي الاقتباس أدناه ثم احفظ الملف. ║
+# ║ مثال: AI_API_KEY = "AIza..."                                 ║
+# ╚══════════════════════════════════════════════════════════════╝
+AI_API_KEY = "AQ.Ab8RN6KcWgF1jFngQfNY7sp8tU_wK3UvDpsuMLWoCdm6pQju5Q"  # ضع مفتاح Gemini الجديد هنا
+OWNER_ID = 7788474071  # ضع رقم حسابك في Telegram هنا (رقم فقط)، مثال: 123456789
+
+# تحميل ملف .env (اختياري) قبل أي استيراد، عشان باقي الملفات تقرأ المتغيرات
+import os as _os
+_env_path = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), ".env")
+if _os.path.exists(_env_path):
+    with open(_env_path, "r", encoding="utf-8") as _f:
+        for _line in _f:
+            _line = _line.strip()
+            if not _line or _line.startswith("#") or "=" not in _line:
+                continue
+            _k, _v = _line.split("=", 1)
+            _k, _v = _k.strip(), _v.strip().strip('"').strip("'")
+            if _k and _v:
+                _os.environ.setdefault(_k, _v)      # متغيرات النظام (Railway) لها الأولوية
+# المفتاح المكتوب أعلى هذا الملف يتقدم على .env عند تعبئته
+if AI_API_KEY.strip():
+    _os.environ["AI_API_KEY"] = AI_API_KEY.strip()
+# إذا وضعت رقم المالك هنا، تكون له الأولوية على قيمة OWNER_ID في .env
+if int(OWNER_ID or 0) > 0:
+    _os.environ["OWNER_ID"] = str(int(OWNER_ID))
 import os
-
-# الصق مفتاح Gemini الجديد بين علامتي الاقتباس أدناه على جهازك فقط.
-# لا تستخدم المفتاح القديم الذي ظهر في الملف/الصورة، ولا ترسله لأي شخص.
-AI_API_KEY = "AQ.Ab8RN6JhMWd6P_OdVO3yyHd8p4O5bzxkND7xxclLapzrTBpnrw"
-OWNER_ID = 7788474071
-
-if AI_API_KEY == "PASTE_NEW_GEMINI_API_KEY_HERE" or not AI_API_KEY.strip():
-    raise SystemExit("ضع مفتاح Gemini الجديد في متغير AI_API_KEY أعلى الملف")
-os.environ["AI_API_KEY"] = AI_API_KEY.strip()
-os.environ["OWNER_ID"] = str(OWNER_ID)
-
 import json
 import asyncio
 import logging
