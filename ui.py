@@ -4,7 +4,6 @@ import html
 import logging
 import os
 import re
-from telegram import ReplyKeyboardMarkup
 
 BOT_NAME = os.environ.get("BOT_NAME", "Music Bot")
 log = logging.getLogger("ui")
@@ -107,19 +106,8 @@ def admin_menu():
     )
 
 
-def main_keyboard():
-    """قائمة أزرار Telegram الرئيسية بدل الحاجة لحفظ أوامر القائمة."""
-    return ReplyKeyboardMarkup(
-        [["🤖 اسأل AI", "📖 المساعدة"], ["🎵 الموسيقى", "💃 الرقص"], ["👥 الفرق", "❌ إلغاء"]],
-        resize_keyboard=True,
-        is_persistent=True,
-        input_field_placeholder="اختر زرّاً من القائمة…",
-    )
-
-
-async def reply(message, text, reply_markup=None):
-    return await message.reply_text(text, parse_mode="HTML", disable_web_page_preview=True,
-                                    reply_markup=reply_markup)
+async def reply(message, text):
+    return await message.reply_text(text, parse_mode="HTML", disable_web_page_preview=True)
 
 
 async def edit(msg, text):
